@@ -14,7 +14,7 @@ void check_long_parameter();
 void check_duplicate();
 vector<string> functions_name;
 vector<string> output_long_method;
-string output2;
+vector<string> output_long_parameter;
 string output3;
 
 int main() {
@@ -33,7 +33,7 @@ int main() {
     cout << "1. Long Method/Function Detection\n";
     cout << "2. Long Parameter List Detection\n";
     cout << "3. Duplicated Code Detection\n";
-    cout << "4. Quit\n \n";
+    cout << "4. Quit\n";
 
     user_interface();
 }
@@ -57,7 +57,13 @@ void user_interface(){
                         }
                         break;
                     case 2:
-                        cout << ""  << endl;
+                        if(output_long_parameter.size() == 0){
+                            cout << "No function has a long parameter list.\n";
+                        }else{
+                            for(int i = 0; i < output_long_parameter.size(); i+=2){
+                                cout << output_long_parameter.at(i) << " has a Long Parameter List. Its parameter list contains " << output_long_parameter.at(i+1) << " parameters.\n";
+                            }
+                        }
                         break;
                     case 3:
                         cout << ""  << endl;
@@ -104,6 +110,15 @@ void all_function_names(string filename){
                     size_t name_end = line.find("(");
                     function_name = line.substr(name_start, name_end - name_start);
                     functions_name.push_back(function_name);
+
+                    int count_comma = 0;
+                    for(int i = 0; i < line.length(); i++){
+                        if(line[i] == ',') count_comma++;
+                    }
+                    if(count_comma >= 3){
+                        output_long_parameter.push_back(function_name);
+                        output_long_parameter.push_back(to_string(count_comma + 1));
+                    }
 
                     // Count the lines of the function by looking for opening and closing braces
                     if(first_function){
