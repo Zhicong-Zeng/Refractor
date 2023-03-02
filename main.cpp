@@ -4,24 +4,26 @@
 #include <algorithm>
 #include <vector>
 #include <sstream>
+#include <map>
 
 using namespace std;
 
 void user_interface();
-void all_function_names(string filename);
+void analysis_file(string filename);
 void check_long_method();
 void check_long_parameter();
 void check_duplicate();
 vector<string> functions_name;
 vector<string> output_long_method;
 vector<string> output_long_parameter;
-string output3;
+vector<string> output_duplicate;
+map<string, string> function_context_map;
 
 int main() {
     string filename = "test.cpp";
-    all_function_names(filename);
+    analysis_file(filename);
 
-    cout << "Welcome to Code Smell Detection! The file you input contains the following methods/functions:\n"; 
+    cout << "\nWelcome to Code Smell Detection! The file you input contains the following methods/functions:\n"; 
     for(int i = 0; i < functions_name.size(); i++){
         cout << functions_name[i];
         if(i != functions_name.size()-1){
@@ -33,7 +35,7 @@ int main() {
     cout << "1. Long Method/Function Detection\n";
     cout << "2. Long Parameter List Detection\n";
     cout << "3. Duplicated Code Detection\n";
-    cout << "4. Quit\n";
+    cout << "4. Quit\n \n";
 
     user_interface();
 }
@@ -66,7 +68,19 @@ void user_interface(){
                         }
                         break;
                     case 3:
-                        cout << ""  << endl;
+                        bool duplicate_exist;
+                        for(int i = 0; i < functions_name.size(); i++){
+                            for(int j = i+1; j < functions_name.size(); j++){
+                    
+                                if(function_context_map[functions_name.at(i)] == function_context_map[functions_name.at(j)]){
+                                    cout << functions_name.at(i) << " and " << functions_name.at(j) << " are duplicated.\n";
+                                    duplicate_exist = true;
+                                }
+                            }
+                        }
+                        if(!duplicate_exist){
+                            cout << " No functions are duplicated.\n";
+                        }
                         break;
                     case 4:
                         cout << "Exiting...\n";
@@ -77,7 +91,7 @@ void user_interface(){
                 cout << "1. Long Method/Function Detection\n";
                 cout << "2. Long Parameter List Detection\n";
                 cout << "3. Duplicated Code Detection\n";
-                cout << "4. Quit\n";
+                cout << "4. Quit\n \n";
             } else {
                 cout << "Invalid input option selected" << endl;
             }
@@ -87,11 +101,13 @@ void user_interface(){
     }
 }
 
-void all_function_names(string filename){
+void analysis_file(string filename){
     ifstream input_file(filename);
     int curly_brackets = 0;
     string function_name;
     string current_function;
+    string function_context;
+    bool function_start = false;
 
     try{
         if (input_file.is_open()) {
@@ -123,23 +139,35 @@ void all_function_names(string filename){
                     // Count the lines of the function by looking for opening and closing braces
                     if(first_function){
                         first_function = false;
-                        //cout << "    Lines: " << line_count << endl;
                     }else{
                         if(line_count >= 16){
                             output_long_method.push_back(functions_name.at(functions_name.size() - 2));
                             output_long_method.push_back(to_string(line_count));
-                        }
-                        //cout << "    Lines: " << line_count << endl;
+                        }   
                     }
                     brace_count = 0;
                     line_count = 0;
+                    function_start = true;
                 }
 
                 if(line.find("{") != string::npos) curly_brackets++;
                 if(line.find("}") != string::npos) curly_brackets--;
 
-                //cout << "    Lines: " << line.length() << line << endl;
                 ++line_count;
+                if(function_name.empty() || function_start){
+                    function_start = false;
+                    if(!function_name.empty()){
+                        function_context_map[function_name] = function_context;
+                    }
+                    function_context = "";
+                }else{
+                    for(int i = 0; i < line.length(); i++){
+                        if(line[i] != ' ' && line[i] != '{' && line[i] != '}'){
+                            function_context += line[i];
+                        }
+                    }
+                }
+                
                 brace_count += count(line.begin(), line.end(), '{');
                 brace_count -= count(line.begin(), line.end(), '}');
             }
@@ -147,7 +175,20 @@ void all_function_names(string filename){
             if(line_count >= 16){
                 output_long_method.push_back(functions_name.at(functions_name.size() -1));
                 output_long_method.push_back(to_string(line_count));
-                //cout << "    Lines: " << line_count << endl;
+            }
+
+            if(function_name.empty() || function_start){
+                function_start = false;
+                if(!function_name.empty()){
+                    function_context_map[function_name] = function_context;
+                }
+                function_context = "";
+            }else{
+                for(int i = 0; i < line.length(); i++){
+                    if(line[i] != ' ' && line[i] != '{' && line[i] != '}'){
+                        function_context += line[i];
+                    }
+                }
             }
             input_file.close();
         }
