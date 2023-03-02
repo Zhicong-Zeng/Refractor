@@ -81,6 +81,9 @@ void user_interface(){
                         if(!duplicate_exist){
                             cout << " No functions are duplicated.\n";
                         }
+                        cout << functions_name.at(2) << function_context_map[functions_name.at(2)] << endl;
+                        cout << functions_name.at(3) << function_context_map[functions_name.at(3)] << endl;
+                        cout << functions_name.at(4) << function_context_map[functions_name.at(4)] << endl;
                         break;
                     case 4:
                         cout << "Exiting...\n";
@@ -154,10 +157,15 @@ void analysis_file(string filename){
                 if(line.find("}") != string::npos) curly_brackets--;
 
                 ++line_count;
+
                 if(function_name.empty() || function_start){
                     function_start = false;
                     if(!function_name.empty()){
-                        function_context_map[function_name] = function_context;
+                        if(functions_name.size() == 1){
+                            function_context_map[functions_name.at(functions_name.size() - 1)] = function_context;
+                        }else{
+                            function_context_map[functions_name.at(functions_name.size() - 2)] = function_context;
+                        }
                     }
                     function_context = "";
                 }else{
@@ -177,19 +185,7 @@ void analysis_file(string filename){
                 output_long_method.push_back(to_string(line_count));
             }
 
-            if(function_name.empty() || function_start){
-                function_start = false;
-                if(!function_name.empty()){
-                    function_context_map[function_name] = function_context;
-                }
-                function_context = "";
-            }else{
-                for(int i = 0; i < line.length(); i++){
-                    if(line[i] != ' ' && line[i] != '{' && line[i] != '}'){
-                        function_context += line[i];
-                    }
-                }
-            }
+            function_context_map[functions_name.at(functions_name.size() - 1)] = function_context;
             input_file.close();
         }
     }catch(const exception& e){
