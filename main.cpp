@@ -81,9 +81,6 @@ void user_interface(){
                         if(!duplicate_exist){
                             cout << " No functions are duplicated.\n";
                         }
-                        cout << functions_name.at(2) << function_context_map[functions_name.at(2)] << endl;
-                        cout << functions_name.at(3) << function_context_map[functions_name.at(3)] << endl;
-                        cout << functions_name.at(4) << function_context_map[functions_name.at(4)] << endl;
                         break;
                     case 4:
                         cout << "Exiting...\n";
@@ -186,6 +183,7 @@ void analysis_file(string filename){
             }
 
             function_context_map[functions_name.at(functions_name.size() - 1)] = function_context;
+            
             input_file.close();
         }
     }catch(const exception& e){
