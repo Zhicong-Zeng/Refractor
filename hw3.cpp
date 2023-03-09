@@ -71,7 +71,6 @@ void user_interface(){
                         bool duplicate_exist;
                         for(int i = 0; i < functions_name.size(); i++){
                             for(int j = i+1; j < functions_name.size(); j++){
-                    
                                 if(function_context_map[functions_name.at(i)] == function_context_map[functions_name.at(j)]){
                                     cout << functions_name.at(i) << " and " << functions_name.at(j) << " are duplicated.\n";
                                     duplicate_exist = true;
@@ -107,7 +106,6 @@ void analysis_file(string filename){
     string function_name;
     string current_function;
     string function_context;
-    bool function_start = false;
 
     try{
         if (input_file.is_open()) {
@@ -115,6 +113,7 @@ void analysis_file(string filename){
             int brace_count = 0;
             int line_count = 0;
             bool first_function = true;
+            bool function_start = false;
 
             while (getline(input_file, line)) {
                 bool whiteSpacesOnly =  line.find_first_not_of (' ') == line.npos;
@@ -147,6 +146,24 @@ void analysis_file(string filename){
                     }
                     brace_count = 0;
                     line_count = 0;
+
+                    if(functions_name.size() == 1){
+                        function_context_map[functions_name.at(functions_name.size() - 1)] = function_context;
+                    }else{
+                        function_context_map[functions_name.at(functions_name.size() - 2)] = function_context;
+                    }
+    
+                    function_context = "";
+                    bool function_parameter_start = false;
+
+                    for(int i = 0; i < line.length(); i++){
+                        if(line[i] != ' ' && line[i] != '{' && line[i] != '}' && function_parameter_start){
+                            function_context += line[i];
+                        }
+                        if(line[i] == '('){
+                            function_parameter_start = true;
+                        }
+                    }
                     function_start = true;
                 }
 
@@ -155,16 +172,8 @@ void analysis_file(string filename){
 
                 ++line_count;
 
-                if(function_name.empty() || function_start){
+                if(function_start){
                     function_start = false;
-                    if(!function_name.empty()){
-                        if(functions_name.size() == 1){
-                            function_context_map[functions_name.at(functions_name.size() - 1)] = function_context;
-                        }else{
-                            function_context_map[functions_name.at(functions_name.size() - 2)] = function_context;
-                        }
-                    }
-                    function_context = "";
                 }else{
                     for(int i = 0; i < line.length(); i++){
                         if(line[i] != ' ' && line[i] != '{' && line[i] != '}'){
@@ -183,7 +192,6 @@ void analysis_file(string filename){
             }
 
             function_context_map[functions_name.at(functions_name.size() - 1)] = function_context;
-            
             input_file.close();
         }
     }catch(const exception& e){
